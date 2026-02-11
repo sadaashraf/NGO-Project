@@ -5,7 +5,7 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 
 @Controller('members')
 export class MembersController {
-  constructor(private readonly membersService: MembersService) {}
+  constructor(private readonly membersService: MembersService) { }
 
   @Post()
   create(@Body() createMemberDto: CreateMemberDto) {

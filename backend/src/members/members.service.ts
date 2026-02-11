@@ -1,26 +1,57 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Member } from './entities/member.entity';
+import { Repository } from 'typeorm';
+
+
 
 @Injectable()
 export class MembersService {
-  create(createMemberDto: CreateMemberDto) {
-    return 'This action adds a new member';
+
+  constructor(
+    @InjectRepository(Member)
+    private memberRepo: Repository<Member>,
+  ) { }
+
+  async create(createMemberDto: CreateMemberDto) {
+    const member = await this.memberRepo.findOneBy({
+      phoneNumber: createMemberDto.phoneNumber,
+    });
+
+    if (member) {
+      throw new BadRequestException('Phone number already exists');
+    }
+    return this.memberRepo.save(createMemberDto);
   }
 
+
   findAll() {
-    return `This action returns all members`;
+    return this.memberRepo.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} member`;
+    const member = this.memberRepo.findOneBy({ id });
+    if (!member) {
+      throw new BadRequestException('Member not found');
+    }
+    return member;
   }
 
-  update(id: number, updateMemberDto: UpdateMemberDto) {
-    return `This action updates a #${id} member`;
+  async update(id: number, updateMemberDto: UpdateMemberDto) {
+    const member = await this.memberRepo.findOneBy({ id });
+    if (!member) {
+      throw new BadRequestException('Member not found');
+    }
+    Object.assign(member, updateMemberDto);
+    return this.memberRepo.save(member);
   }
 
   remove(id: number) {
-    return `This action removes a #${id} member`;
+    const member = this.memberRepo.findOneBy({ id });
+    if (!member) {
+      throw new BadRequestException('Member not found');
+    } return this.memberRepo.delete(id);
   }
 }
