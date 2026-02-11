@@ -15,7 +15,7 @@ export class MembersService {
     private memberRepo: Repository<Member>,
   ) { }
 
-  async create(createMemberDto: CreateMemberDto, file: Express.Multer.File) {
+  async create(createMemberDto: CreateMemberDto, file: Express.Multer.File, paymentProofFile: Express.Multer.File) {
     const member = await this.memberRepo.findOneBy({
       phoneNumber: createMemberDto.phoneNumber,
     });
