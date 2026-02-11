@@ -1,25 +1,31 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator"
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class CreateMemberDto {
   @IsString()
   @IsNotEmpty()
-  name: string
+  fullName: string;   // ← match Entity
+
   @IsString()
   @IsNotEmpty()
-  fatherName: string
+  fatherName: string;
+
   @IsString()
   @IsNotEmpty()
-  phoneNumber: string
+  phoneNumber: string;
+
   @IsString()
   @IsNotEmpty()
-  password: string
+  password: string;
+
   @IsNumber()
   @IsNotEmpty()
-  donationAmount: number
-  @IsString()
-  @IsNotEmpty()
-  image: string
-  @IsString()
-  @IsNotEmpty()
-  paymentproof: string
+  donationAmount: number;
+
+  // @IsString()
+  // @IsNotEmpty()
+  // image?: string;
+
+  // @IsString()
+  // @IsNotEmpty()
+  // paymentProof?: string;  // ← match Entity
 }

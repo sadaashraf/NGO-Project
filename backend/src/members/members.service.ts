@@ -15,7 +15,7 @@ export class MembersService {
     private memberRepo: Repository<Member>,
   ) { }
 
-  async create(createMemberDto: CreateMemberDto) {
+  async create(createMemberDto: CreateMemberDto, file: Express.Multer.File) {
     const member = await this.memberRepo.findOneBy({
       phoneNumber: createMemberDto.phoneNumber,
     });
@@ -23,7 +23,12 @@ export class MembersService {
     if (member) {
       throw new BadRequestException('Phone number already exists');
     }
-    return this.memberRepo.save(createMemberDto);
+    const newMember = this.memberRepo.create({
+      ...createMemberDto,
+      image: file?.filename ?? null,
+      paymentProof: paymentProofFile?.filename ?? null,
+    });
+    return this.memberRepo.save(newMember);
   }
 
 
