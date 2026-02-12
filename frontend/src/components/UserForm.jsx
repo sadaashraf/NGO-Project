@@ -44,18 +44,47 @@ export default function UserForm() {
     reader.readAsDataURL(file)
   }
 
-  const handleSubmit = e => {
-    e.preventDefault()
-    addMember({
-      name: formData.name,
-      fatherName: formData.fatherName,
-      phone: formData.phone,
-      donation: formData.donation,
-      profileImage: profilePreview,
-      paymentFile,
-    })
-    navigate('/members')
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const formDataToSend = new FormData();
+
+      formDataToSend.append("fullName", formData.name);
+      formDataToSend.append("fatherName", formData.fatherName);
+      formDataToSend.append("phoneNumber", formData.phone);
+      formDataToSend.append("password", "123456"); // temporary
+      formDataToSend.append("donationAmount", Number(formData.donation));
+
+      if (profileFile) {
+        formDataToSend.append("image", profileFile);
+      }
+
+      if (paymentFile) {
+        formDataToSend.append("paymentProof", paymentFile);
+      }
+
+      const response = await fetch("http://localhost:3000/members", {
+        method: "POST",
+        body: formDataToSend,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create member");
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      alert("Member Created Successfully");
+      navigate("/members");
+
+    } catch (error) {
+      console.log('full error:', error);
+      alert("Error creating member");
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
