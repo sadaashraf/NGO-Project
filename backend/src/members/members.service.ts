@@ -42,8 +42,8 @@ export class MembersService {
     return this.memberRepo.find();
   }
 
-  findOne(id: number) {
-    const member = this.memberRepo.findOneBy({ id });
+  async findOne(id: number) {
+    const member = await this.memberRepo.findOneBy({ id });
     if (!member) {
       throw new BadRequestException('Member not found');
     }
