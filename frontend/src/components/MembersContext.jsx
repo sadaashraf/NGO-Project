@@ -1,84 +1,106 @@
 // src/MembersContext.jsx
 import { createContext, useState, useContext, useEffect } from 'react';
+import axios from 'axios';
+
+const API_BASE = 'http://localhost:3000/members'; // ← change to your real backend URL
 
 const MembersContext = createContext();
 
 export function MembersProvider({ children }) {
   const [members, setMembers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null); // logged in user
+  const [loading, setLoading] = useState(false);
 
-  // Load from localStorage on mount
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(API_BASE);
+      setMembers(res.data);
+    } catch (err) {
+      console.error("Failed to load members", err);
+      alert("Could not load members");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const savedMembers = localStorage.getItem('members');
-    const savedUser = localStorage.getItem('currentUser');
-    if (savedMembers) setMembers(JSON.parse(savedMembers));
-    if (savedUser) setCurrentUser(JSON.parse(savedUser));
+    fetchMembers();
   }, []);
 
-  // Save to localStorage whenever members or currentUser change
-  useEffect(() => {
-    localStorage.setItem('members', JSON.stringify(members));
-  }, [members]);
+  const refreshMembers = fetchMembers; // alias for reuse
 
-  useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('currentUser');
-    }
-  }, [currentUser]);
-
-  // Register new member
-  const register = (newMemberData) => {
-    const newMember = {
-      id: Date.now().toString(),
-      fullName: newMemberData.name,
-      fatherName: newMemberData.fatherName,
-      phone: newMemberData.phone.trim(),
-      donation: newMemberData.donation,
-      profileImage: newMemberData.profileImage,
-      paymentScreenshot: newMemberData.paymentFile ? URL.createObjectURL(newMemberData.paymentFile) : null,
-      paymentProofName: newMemberData.paymentFile ? newMemberData.paymentFile.name : 'No file chosen',
-      status: newMemberData.paymentFile ? 'PAID' : 'UNPAID',
-      createdAt: new Date().toISOString(),
-    };
-
-    // Check if phone already exists
-    if (members.some(m => m.phone === newMember.phone)) {
-      alert('This phone number is already registered!');
-      return false;
-    }
-
-    setMembers(prev => [...prev, newMember]);
-    // Auto login after register
-    setCurrentUser(newMember);
-    return true;
-  };
-
-  // Login with phone
-  const login = (phone) => {
-    const user = members.find(m => m.phone.trim() === phone.trim());
-    if (user) {
-      setCurrentUser(user);
+  // Create member (with files)
+  const createMember = async (formData) => {
+    try {
+      const res = await axios.post(API_BASE, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setMembers(prev => [...prev, res.data]);
       return true;
-    } else {
-      alert('Phone number not found. Please register first.');
+    } catch (err) {
+      console.error(err.response?.data || err);
+      alert(err.response?.data?.message || "Failed to create member");
       return false;
     }
   };
 
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem('currentUser');
+  // Update member (only fields – no file update for simplicity)
+  const updateMember = async (id, updateData) => {
+    try {
+      const res = await axios.patch(`${API_BASE}/${id}`, updateData);
+      setMembers(prev =>
+        prev.map(m => m.id === id ? { ...m, ...res.data } : m)
+      );
+      return true;
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update member");
+      return false;
+    }
+  };
+
+  // Delete member
+  const deleteMember = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this member?")) return;
+
+    try {
+      await axios.delete(`${API_BASE}/${id}`);
+      setMembers(prev => prev.filter(m => m.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete member");
+    }
+  };
+
+  // Upload new payment proof (separate endpoint would be better)
+  const uploadPaymentProof = async (memberId, file) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('paymentProof', file);
+
+    try {
+      const res = await axios.patch(`${API_BASE}/${memberId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setMembers(prev =>
+        prev.map(m => m.id === memberId ? { ...m, ...res.data } : m)
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Failed to upload payment proof");
+    }
   };
 
   return (
     <MembersContext.Provider value={{
       members,
-      currentUser,
-      register,
-      login,
-      logout,
+      loading,
+      createMember,
+      updateMember,
+      deleteMember,
+      uploadPaymentProof,
+      refreshMembers,
     }}>
       {children}
     </MembersContext.Provider>
