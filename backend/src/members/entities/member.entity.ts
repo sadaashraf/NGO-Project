@@ -24,9 +24,6 @@ export class Member {
   @Column({ nullable: true })
   paymentProof?: string;
 
-  @Column({ default: 'user' })
-  role: string;
-
   @Column({ type: 'varchar', default: 'UNPAID' })
   status: 'PAID' | 'UNPAID';
 }
