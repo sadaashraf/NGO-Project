@@ -19,17 +19,18 @@ function MembersList() {
   const [editingMember, setEditingMember] = useState(null);
   const [editFormData, setEditFormData] = useState({});
 
-  const handleProofChange = async (e, memberId) => {
+  // Correct handler order: memberId first, then event
+  const handleProofChange = async (memberId, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const numericId = Number(memberId); // ← یہاں force number
+    const numericId = Number(memberId);
 
     setUploadingProofId(numericId);
     try {
       const success = await replacePaymentProof(numericId, file);
       if (success) {
-        refreshMembers(); // فوری ریفریش
+        refreshMembers();
       }
     } catch (err) {
       console.error(err);
@@ -40,17 +41,17 @@ function MembersList() {
     }
   };
 
-  const handleImageChange = async (e, memberId) => {
+  const handleImageChange = async (memberId, e) => {
+    console.log("Changing image for ID:", memberId);
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const numericId = Number(memberId); // ← یہاں force number
+    const numericId = Number(memberId);
 
     setUploadingImageId(numericId);
     try {
       const success = await updateProfileImage(numericId, file);
       if (success) {
-        refreshMembers(); // فوری ریفریش
+        refreshMembers();
       }
     } catch (err) {
       console.error(err);
@@ -68,7 +69,7 @@ function MembersList() {
 
   const confirmDelete = (id, name) => {
     if (window.confirm(`Delete member ${name || 'this member'}?`)) {
-      deleteMember(Number(id)); // ← number یقینی بنائیں
+      deleteMember(Number(id));
     }
   };
 
@@ -93,7 +94,7 @@ function MembersList() {
 
     const success = await updateMember(Number(editingMember.id), editFormData);
     if (success) {
-      alert('Member updated!');
+      alert('Member updated successfully!');
       setEditingMember(null);
       setEditFormData({});
       refreshMembers();
@@ -135,12 +136,14 @@ function MembersList() {
             </thead>
 
             <tbody className="divide-y divide-gray-200">
-              {members.map((member, index) => {
-                const memberId = Number(member.id); // ← ہر جگہ number یقینی
+              {members.map((member) => {
+                const memberId = Number(member.id); // safe conversion
 
                 return (
                   <tr key={memberId} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{index + 1}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {members.findIndex(m => Number(m.id) === memberId) + 1}
+                    </td>
 
                     {/* Profile Image */}
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -166,7 +169,7 @@ function MembersList() {
                             accept="image/*"
                             className="hidden"
                             disabled={uploadingImageId === memberId}
-                            onChange={(e) => handleImageChange(e, memberId)}
+                            onChange={(e) => handleImageChange(memberId, e)}   // ← یہ لائن درست کی
                           />
                         </label>
                       </div>
@@ -194,7 +197,7 @@ function MembersList() {
                             accept="image/*,application/pdf"
                             className="hidden"
                             disabled={uploadingProofId === memberId}
-                            onChange={(e) => handleProofChange(e, memberId)}
+                            onChange={(e) => handleProofChange(memberId, e)}   // ← یہ لائن درست کی
                           />
                         </label>
 
@@ -261,12 +264,67 @@ function MembersList() {
             <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 <h2 className="text-2xl font-bold mb-6">Edit Member</h2>
+
                 <form onSubmit={handleEditSubmit} className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={editFormData.fullName}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Father Name</label>
+                    <input
+                      type="text"
+                      name="fatherName"
+                      value={editFormData.fatherName}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input
+                      type="tel"
+                      name="phoneNumber"
+                      value={editFormData.phoneNumber}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Donation (PKR)</label>
+                    <input
+                      type="number"
+                      name="donation"
+                      value={editFormData.donation}
+                      onChange={handleEditChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                      min="0"
+                    />
+                  </div>
+
                   <div className="flex justify-end gap-4 mt-8">
-                    <button type="button" onClick={cancelEdit} className="px-6 py-2 border rounded-lg hover:bg-gray-50">
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
                       Cancel
                     </button>
-                    <button type="submit" className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                    <button
+                      type="submit"
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
                       Save Changes
                     </button>
                   </div>

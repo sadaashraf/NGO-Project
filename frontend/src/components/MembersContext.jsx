@@ -16,8 +16,6 @@ export function MembersProvider({ children }) {
       const res = await axios.get(API_BASE);
       setMembers(res.data || []);
     } catch (err) {
-      console.error("Failed to load members", err);
-      alert("Could not load members");
     } finally {
       setLoading(false);
     }
