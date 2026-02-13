@@ -20,7 +20,7 @@ export class AuthService {
     // Check if phone already exists
     const existingUser = await this.usersRepository.findOneBy({ phoneNumber });
     if (existingUser) {
-      throw new BadRequestException('Phone number already registered');
+      throw new UnauthorizedException('Phone number already registered');
     }
 
     // Hash password
@@ -51,7 +51,7 @@ export class AuthService {
     }
 
     // Generate JWT
-    const payload = { sub: user.id, phoneNumber: user.phoneNumber };
+    const payload = { sub: user.id, phoneNumber: user.phoneNumber, role: user.role };
     const access_token = this.jwtService.sign(payload);
 
     return {
@@ -60,6 +60,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         phoneNumber: user.phoneNumber,
+        role: user.role,
       },
     };
   }

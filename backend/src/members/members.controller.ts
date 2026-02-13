@@ -14,7 +14,7 @@ import {
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
-import { extname } from 'path';           // ← win32 کی بجائے عام path استعمال کریں (cross-platform)
+import { extname } from 'path';
 import { diskStorage } from 'multer';
 import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 
