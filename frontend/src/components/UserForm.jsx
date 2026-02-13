@@ -1,90 +1,80 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useMembers } from './MembersContext'
+// src/components/UserForm.jsx (یا جو بھی نام ہے)
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMembers } from './MembersContext'; // درست path چیک کریں
 
 export default function UserForm() {
-  const navigate = useNavigate()
-  const { addMember } = useMembers()
+  const navigate = useNavigate();
+  const { createMember, refreshMembers } = useMembers(); // ← یہ دونوں استعمال کریں
 
   const [formData, setFormData] = useState({
     name: '',
     fatherName: '',
     phone: '',
     donation: '1500',
-  })
+  });
 
-  const [profilePreview, setProfilePreview] = useState(null)
-  const [profileFile, setProfileFile] = useState(null)
+  const [profilePreview, setProfilePreview] = useState(null);
+  const [profileFile, setProfileFile] = useState(null);
 
-  const [paymentPreview, setPaymentPreview] = useState(null)
-  const [paymentFile, setPaymentFile] = useState(null)
+  const [paymentPreview, setPaymentPreview] = useState(null);
+  const [paymentFile, setPaymentFile] = useState(null);
 
   const handleChange = e => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleProfile = e => {
-    const file = e.target.files[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) return alert('Max 5 MB allowed')
-    setProfileFile(file)
-    const reader = new FileReader()
-    reader.onload = () => setProfilePreview(reader.result)
-    reader.readAsDataURL(file)
-  }
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return alert('Max 5 MB allowed');
+    setProfileFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setProfilePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
   const handlePayment = e => {
-    const file = e.target.files[0]
-    if (!file) return
-    if (file.size > 5 * 1024 * 1024) return alert('Max 5 MB allowed')
-    setPaymentFile(file)
-    const reader = new FileReader()
-    reader.onload = () => setPaymentPreview(reader.result)
-    reader.readAsDataURL(file)
-  }
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) return alert('Max 5 MB allowed');
+    setPaymentFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setPaymentPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      const formDataToSend = new FormData();
+    const formDataToSend = new FormData();
 
-      formDataToSend.append("fullName", formData.name);
-      formDataToSend.append("fatherName", formData.fatherName);
-      formDataToSend.append("phoneNumber", formData.phone);
-      formDataToSend.append("password", "123456"); // temporary
-      formDataToSend.append("donationAmount", Number(formData.donation));
+    // فیلڈز کا نام backend کے مطابق رکھیں
+    formDataToSend.append("fullName", formData.name);
+    formDataToSend.append("fatherName", formData.fatherName);
+    formDataToSend.append("phoneNumber", formData.phone.trim());
+    formDataToSend.append("donationAmount", Number(formData.donation));
 
-      if (profileFile) {
-        formDataToSend.append("image", profileFile);
-      }
+    if (profileFile) {
+      formDataToSend.append("image", profileFile);
+    }
 
-      if (paymentFile) {
-        formDataToSend.append("paymentProof", paymentFile);
-      }
+    if (paymentFile) {
+      formDataToSend.append("paymentProof", paymentFile);
+    }
 
-      const response = await fetch("http://localhost:3000/members", {
-        method: "POST",
-        body: formDataToSend,
-      });
+    // context کا createMember استعمال کریں (یہ refresh بھی سنبھال لے گا)
+    const success = await createMember(formDataToSend);
 
-      if (!response.ok) {
-        throw new Error("Failed to create member");
-      }
-
-      const data = await response.json();
-      console.log(data);
-
-      alert("Member Created Successfully");
-      navigate("/members");
-
-    } catch (error) {
-      console.log('full error:', error);
-      alert("Error creating member");
+    if (success) {
+      alert("Member Created Successfully!");
+      await refreshMembers();        // ← لسٹ فوری اپ ڈیٹ ہو جائے گی
+      navigate("/members");          // یا آپ کا لسٹ روٹ جو بھی ہے
+    } else {
+      alert("Error creating member. Please check console.");
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
@@ -197,7 +187,7 @@ export default function UserForm() {
               )}
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 onChange={handlePayment}
                 className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
               />
@@ -216,5 +206,5 @@ export default function UserForm() {
         </form>
       </div>
     </div>
-  )
+  );
 }

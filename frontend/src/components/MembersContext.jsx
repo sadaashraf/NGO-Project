@@ -2,7 +2,7 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:3000/members'; // ← change to your real backend URL
+const API_BASE = 'http://localhost:3000/members';
 
 const MembersContext = createContext();
 
@@ -14,7 +14,7 @@ export function MembersProvider({ children }) {
     try {
       setLoading(true);
       const res = await axios.get(API_BASE);
-      setMembers(res.data);
+      setMembers(res.data || []);
     } catch (err) {
       console.error("Failed to load members", err);
       alert("Could not load members");
@@ -27,9 +27,8 @@ export function MembersProvider({ children }) {
     fetchMembers();
   }, []);
 
-  const refreshMembers = fetchMembers; // alias for reuse
+  const refreshMembers = fetchMembers;
 
-  // Create member (with files)
   const createMember = async (formData) => {
     try {
       const res = await axios.post(API_BASE, formData, {
@@ -44,7 +43,6 @@ export function MembersProvider({ children }) {
     }
   };
 
-  // Update member (only fields – no file update for simplicity)
   const updateMember = async (id, updateData) => {
     try {
       const res = await axios.patch(`${API_BASE}/${id}`, updateData);
@@ -59,7 +57,6 @@ export function MembersProvider({ children }) {
     }
   };
 
-  // Delete member
   const deleteMember = async (id) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
@@ -72,23 +69,47 @@ export function MembersProvider({ children }) {
     }
   };
 
-  // Upload new payment proof (separate endpoint would be better)
-  const uploadPaymentProof = async (memberId, file) => {
-    if (!file) return;
+  // ── Profile Image Update ───────────────────────────────────────
+  const updateProfileImage = async (memberId, file) => {
+    if (!file) return false;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const res = await axios.patch(`${API_BASE}/${memberId}/image`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setMembers(prev =>
+        prev.map(m => (m.id === memberId ? { ...m, ...res.data } : m))
+      );
+      return true;
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to update profile image");
+      return false;
+    }
+  };
+
+  // ── Payment Proof Replace ──────────────────────────────────────
+  const replacePaymentProof = async (memberId, file) => {
+    if (!file) return false;
 
     const formData = new FormData();
     formData.append('paymentProof', file);
 
     try {
-      const res = await axios.patch(`${API_BASE}/${memberId}`, formData, {
+      const res = await axios.patch(`${API_BASE}/${memberId}/payment-proof`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setMembers(prev =>
-        prev.map(m => m.id === memberId ? { ...m, ...res.data } : m)
+        prev.map(m => (m.id === memberId ? { ...m, ...res.data } : m))
       );
+      return true;
     } catch (err) {
       console.error(err);
-      alert("Failed to upload payment proof");
+      alert(err.response?.data?.message || "Failed to replace payment proof");
+      return false;
     }
   };
 
@@ -99,7 +120,8 @@ export function MembersProvider({ children }) {
       createMember,
       updateMember,
       deleteMember,
-      uploadPaymentProof,
+      updateProfileImage,
+      replacePaymentProof,
       refreshMembers,
     }}>
       {children}
