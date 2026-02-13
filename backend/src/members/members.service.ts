@@ -4,6 +4,8 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
 import { Repository } from 'typeorm';
+import { unlink } from 'fs/promises';
+import path from 'path/win32';
 
 
 
@@ -65,4 +67,49 @@ export class MembersService {
       throw new BadRequestException('Member not found');
     } return this.memberRepo.delete(id);
   }
+
+  async updateImage(id: number, imageFile?: Express.Multer.File) {
+    const member = await this.memberRepo.findOneBy({ id });
+    if (!member) throw new BadRequestException('Member not found');
+
+    if (!imageFile) {
+      throw new BadRequestException('No image file provided');
+    }
+
+    // delete old image if exists
+    if (member.image) {
+      const oldPath = path.join(__dirname, '..', '..', 'uploads', member.image);
+      try {
+        await unlink(oldPath);
+      } catch (err) {
+        console.warn(`Old image not deleted: ${err.message}`);
+      }
+    }
+
+    member.image = imageFile.filename;
+    return this.memberRepo.save(member);
+  }
+
+  async updatePaymentProof(id: number, proofFile?: Express.Multer.File) {
+    const member = await this.memberRepo.findOneBy({ id });
+    if (!member) throw new BadRequestException('Member not found');
+
+    if (!proofFile) {
+      throw new BadRequestException('No proof file provided');
+    }
+
+    // پرانی proof delete
+    if (member.paymentProof) {
+      const oldPath = path.join(__dirname, '..', '..', 'uploads', member.paymentProof);
+      try {
+        await unlink(oldPath);
+      } catch (err) {
+        console.warn(`Old proof not deleted: ${err.message}`);
+      }
+    }
+
+    member.paymentProof = proofFile.filename;
+    return this.memberRepo.save(member);
+  }
 }
+
