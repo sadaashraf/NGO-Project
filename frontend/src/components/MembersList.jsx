@@ -112,7 +112,7 @@ function MembersList() {
         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
           <h1 className="text-3xl font-bold text-gray-900">Members List</h1>
           <Link
-            to="/"
+            to="/user-form"
             className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg shadow hover:bg-purple-700 transition"
           >
             + Add New Member

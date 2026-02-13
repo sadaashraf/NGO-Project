@@ -28,11 +28,13 @@ export default function Login() {
         password: formData.password,
       });
 
-      // اگر backend سے token مل رہا ہے تو اسے save کریں
-      // localStorage.setItem('token', response.data.token);
+      // ✅ TOKEN SAVE KARO
+      const token = response.data.access_token;
+      localStorage.setItem('token', token);
 
       alert('Login successful!');
-      navigate('/members'); // یا آپ کا dashboard روٹ
+      navigate('/members');
+
     } catch (err) {
       const message = err.response?.data?.message || 'Invalid phone number or password';
       setError(message);
@@ -40,6 +42,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
