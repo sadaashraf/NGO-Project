@@ -117,6 +117,12 @@ function MembersList() {
           >
             + Add New Member
           </Link>
+          {/* <Link
+            to="/users"
+            className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg shadow hover:bg-purple-700 transition"
+          >
+            user
+          </Link> */}
         </div>
 
         <div className="overflow-x-auto bg-white rounded-xl shadow border border-gray-200">

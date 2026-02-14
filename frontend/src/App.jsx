@@ -3,6 +3,7 @@ import UserForm from './components/UserForm';
 import MembersList from './components/MembersList';
 import Login from './components/Login';
 import Register from './components/Register';
+import Users from './components/User';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/user-form" element={<UserForm />} />
+        {/* <Route path="/users" element={<Users />} /> */}
         <Route path="/members" element={<MembersList />} />
       </Routes>
     </Router>
