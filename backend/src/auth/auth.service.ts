@@ -74,4 +74,8 @@ export class AuthService {
     }
     return null;
   }
+
+  async makeUser(id: number) {
+    return await this.usersRepository.update(id, { role: 'user' });
+  }
 }
