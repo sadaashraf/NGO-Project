@@ -1,8 +1,5 @@
-// src/MembersContext.jsx
 import { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
-
-const API_BASE = 'http://localhost:3000/members';
+import api from '../utils/api';
 
 const MembersContext = createContext();
 
@@ -10,12 +7,14 @@ export function MembersProvider({ children }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // ── Fetch All Members ─────────────────────────────
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_BASE);
+      const res = await api.get("/members"); // token automatically sent
       setMembers(res.data || []);
     } catch (err) {
+      console.error("Error fetching members:", err.response?.data || err);
     } finally {
       setLoading(false);
     }
@@ -27,101 +26,106 @@ export function MembersProvider({ children }) {
 
   const refreshMembers = fetchMembers;
 
+  // ── Create Member ────────────────────────────────
   const createMember = async (formData) => {
     try {
-      const res = await axios.post(API_BASE, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const res = await api.post("/members", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       setMembers(prev => [...prev, res.data]);
       return true;
     } catch (err) {
-      console.error(err.response?.data || err);
+      console.error("Create member error:", err.response?.data || err);
       alert(err.response?.data?.message || "Failed to create member");
       return false;
     }
   };
 
+  // ── Update Member ────────────────────────────────
   const updateMember = async (id, updateData) => {
     try {
-      const res = await axios.patch(`${API_BASE}/${id}`, updateData);
+      const res = await api.patch(`/members/${id}`, updateData);
       setMembers(prev =>
-        prev.map(m => m.id === id ? { ...m, ...res.data } : m)
+        prev.map(m => (m.id === id ? { ...m, ...res.data } : m))
       );
       return true;
     } catch (err) {
-      console.error(err);
-      alert("Failed to update member");
+      console.error("Update member error:", err);
+      alert(err.response?.data?.message || "Failed to update member");
       return false;
     }
   };
 
+  // ── Delete Member ────────────────────────────────
   const deleteMember = async (id) => {
     if (!window.confirm("Are you sure you want to delete this member?")) return;
 
     try {
-      await axios.delete(`${API_BASE}/${id}`);
+      await api.delete(`/members/${id}`);
       setMembers(prev => prev.filter(m => m.id !== id));
     } catch (err) {
-      console.error(err);
-      alert("Failed to delete member");
+      console.error("Delete member error:", err);
+      alert(err.response?.data?.message || "Failed to delete member");
     }
   };
 
-  // ── Profile Image Update ───────────────────────────────────────
+  // ── Update Profile Image ─────────────────────────
   const updateProfileImage = async (memberId, file) => {
     if (!file) return false;
 
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append("image", file);
 
     try {
-      const res = await axios.patch(`${API_BASE}/${memberId}/image`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const res = await api.patch(`/members/${memberId}/image`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       setMembers(prev =>
         prev.map(m => (m.id === memberId ? { ...m, ...res.data } : m))
       );
       return true;
     } catch (err) {
-      console.error(err);
+      console.error("Update profile image error:", err.response?.data || err);
       alert(err.response?.data?.message || "Failed to update profile image");
       return false;
     }
   };
 
-  // ── Payment Proof Replace ──────────────────────────────────────
+  // ── Replace Payment Proof ────────────────────────
   const replacePaymentProof = async (memberId, file) => {
     if (!file) return false;
 
     const formData = new FormData();
-    formData.append('paymentProof', file);
+    formData.append("paymentProof", file);
 
     try {
-      const res = await axios.patch(`${API_BASE}/${memberId}/payment-proof`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const res = await api.patch(`/members/${memberId}/payment-proof`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       setMembers(prev =>
         prev.map(m => (m.id === memberId ? { ...m, ...res.data } : m))
       );
       return true;
     } catch (err) {
-      console.error(err);
+      console.error("Replace payment proof error:", err.response?.data || err);
       alert(err.response?.data?.message || "Failed to replace payment proof");
       return false;
     }
   };
 
   return (
-    <MembersContext.Provider value={{
-      members,
-      loading,
-      createMember,
-      updateMember,
-      deleteMember,
-      updateProfileImage,
-      replacePaymentProof,
-      refreshMembers,
-    }}>
+    <MembersContext.Provider
+      value={{
+        members,
+        loading,
+        createMember,
+        updateMember,
+        deleteMember,
+        updateProfileImage,
+        replacePaymentProof,
+        refreshMembers,
+      }}
+    >
       {children}
     </MembersContext.Provider>
   );

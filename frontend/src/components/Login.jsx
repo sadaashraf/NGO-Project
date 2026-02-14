@@ -1,48 +1,49 @@
-// src/pages/Login.jsx
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 export default function Login() {
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
-    phoneNumber: '',
-    password: '',
+    phoneNumber: "",
+    password: "",
   });
-  const [error, setError] = useState('');
+
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', {
+      const response = await api.post("/auth/login", {
         phoneNumber: formData.phoneNumber.trim(),
         password: formData.password,
       });
 
-      // ✅ TOKEN SAVE KARO
+      // ✅ Save token
       const token = response.data.access_token;
-      localStorage.setItem('token', token);
+      localStorage.setItem("token", token);
 
-      alert('Login successful!');
-      navigate('/members');
+      alert("Login successful!");
+      navigate("/members");
 
     } catch (err) {
-      const message = err.response?.data?.message || 'Invalid phone number or password';
+      const message =
+        err.response?.data?.message || "Invalid phone number or password";
       setError(message);
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -68,8 +69,7 @@ export default function Login() {
               value={formData.phoneNumber}
               onChange={handleChange}
               required
-              pattern="[0-9]{10,13}"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
               placeholder="03XXXXXXXXX"
             />
           </div>
@@ -84,7 +84,7 @@ export default function Login() {
               value={formData.password}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
               placeholder="Enter your password"
             />
           </div>
@@ -92,16 +92,21 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 rounded-lg font-semibold text-white transition ${loading ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'
+            className={`w-full py-3 rounded-lg font-semibold text-white transition ${loading
+              ? "bg-purple-400 cursor-not-allowed"
+              : "bg-purple-600 hover:bg-purple-700"
               }`}
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
         <p className="mt-6 text-center text-gray-600">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-purple-600 hover:underline font-medium">
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            className="text-purple-600 hover:underline font-medium"
+          >
             Register here
           </Link>
         </p>
