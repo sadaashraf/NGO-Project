@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Auth } from './entities/auth.entity';
@@ -35,6 +35,10 @@ export class AuthService {
     await this.usersRepository.save(user);
 
     return { message: 'User registered successfully' };
+  }
+
+  findAll() {
+    return this.usersRepository.find();
   }
 
   async login(loginDto: LoginDto) {
@@ -76,6 +80,11 @@ export class AuthService {
   }
 
   async makeUser(id: number) {
-    return await this.usersRepository.update(id, { role: 'user' });
+    return await this.usersRepository.update(id, { role: 'admin' });
   }
+
+  remove(id: number) {
+    return this.usersRepository.delete(id);
+  }
+
 }

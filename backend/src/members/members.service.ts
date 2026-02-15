@@ -32,8 +32,8 @@ export class MembersService {
 
     const newMember = this.memberRepo.create({
       ...createMemberDto,
-      image: imageFile?.filename ?? undefined,
-      paymentProof: paymentProofFile?.filename ?? undefined,
+      image: imageFile?.path ?? undefined,
+      paymentProof: paymentProofFile?.path ?? undefined,
     });
 
     return this.memberRepo.save(newMember);

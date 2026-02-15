@@ -16,7 +16,7 @@ export class Auth {
   password: string; // hashed
 
   @Column({ default: 'admin' })
-  role: 'admin' | 'user';
+  role: string;
 
   @CreateDateColumn()
   createdAt: Date;
