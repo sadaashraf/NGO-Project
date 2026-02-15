@@ -156,7 +156,7 @@ function MembersList() {
                       <div className="relative group inline-block">
                         {member.image ? (
                           <img
-                            src={`http://localhost:3000/uploads/${member.image}`}
+                            src={`http://localhost:3000/${member.image}`}
                             alt={member.fullName}
                             className="h-12 w-12 rounded-full object-cover border border-gray-300"
                             onError={(e) => (e.target.src = 'https://via.placeholder.com/48?text=?')}
