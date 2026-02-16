@@ -5,7 +5,7 @@ import { useMembers } from './MembersContext'; // درست path چیک کریں
 
 export default function UserForm() {
   const navigate = useNavigate();
-  const { createMember, refreshMembers } = useMembers(); // ← یہ دونوں استعمال کریں
+  const { createMember, refreshMembers } = useMembers();
 
   const [formData, setFormData] = useState({
     name: '',

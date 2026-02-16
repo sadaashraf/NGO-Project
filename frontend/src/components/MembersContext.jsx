@@ -1,18 +1,49 @@
-import { createContext, useState, useContext, useEffect } from 'react';
-import api from '../utils/api';
+import { createContext, useState, useContext, useEffect } from "react";
+import api from "../utils/api";
 
 const MembersContext = createContext();
 
 export function MembersProvider({ children }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // ── Fetch All Members ─────────────────────────────
+  // ── Decode Token ─────────────────────────
+  const decodeToken = (token) => {
+    try {
+      return JSON.parse(atob(token.split(".")[1]));
+    } catch {
+      return null;
+    }
+  };
+
+  // ── Login ────────────────────────────────
+  const login = (token) => {
+    localStorage.setItem("token", token);
+    const user = decodeToken(token);
+    setCurrentUser(user);
+  };
+
+  // ── Logout ───────────────────────────────
+  const logout = () => {
+    localStorage.removeItem("token");
+    setCurrentUser(null);
+    setMembers([]);
+  };
+
+  // ── Fetch Members ────────────────────────
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/members"); // token automatically sent
-      setMembers(res.data || []);
+      const res = await api.get("/members");
+
+      // 🔥 Force ID to always be number
+      const formatted = (res.data || []).map((m) => ({
+        ...m,
+        id: Number(m.id),
+      }));
+
+      setMembers(formatted);
     } catch (err) {
       console.error("Error fetching members:", err.response?.data || err);
     } finally {
@@ -20,94 +51,125 @@ export function MembersProvider({ children }) {
     }
   };
 
+  // ── On App Load ─────────────────────────
   useEffect(() => {
-    fetchMembers();
+    const token = localStorage.getItem("token");
+    if (token) {
+      const user = decodeToken(token);
+      setCurrentUser(user);
+      fetchMembers();
+    }
   }, []);
 
-  const refreshMembers = fetchMembers;
-
-  // ── Create Member ────────────────────────────────
+  // ── Create Member ───────────────────────
   const createMember = async (formData) => {
     try {
       const res = await api.post("/members", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setMembers(prev => [...prev, res.data]);
+
+      const newMember = {
+        ...res.data,
+        id: Number(res.data.id),
+      };
+
+      setMembers((prev) => [...prev, newMember]);
       return true;
     } catch (err) {
-      console.error("Create member error:", err.response?.data || err);
       alert(err.response?.data?.message || "Failed to create member");
       return false;
     }
   };
 
-  // ── Update Member ────────────────────────────────
+  // ── Update Member ───────────────────────
   const updateMember = async (id, updateData) => {
     try {
-      const res = await api.patch(`/members/${id}`, updateData);
-      setMembers(prev =>
-        prev.map(m => (m.id === id ? { ...m, ...res.data } : m))
+      const numericId = Number(id);
+
+      const res = await api.patch(`/members/${numericId}`, updateData);
+
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === numericId
+            ? { ...m, ...res.data, id: numericId }
+            : m
+        )
       );
+
       return true;
     } catch (err) {
-      console.error("Update member error:", err);
       alert(err.response?.data?.message || "Failed to update member");
       return false;
     }
   };
 
-  // ── Delete Member ────────────────────────────────
+  // ── Delete Member ───────────────────────
   const deleteMember = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this member?")) return;
-
     try {
-      await api.delete(`/members/${id}`);
-      setMembers(prev => prev.filter(m => m.id !== id));
+      const numericId = Number(id);
+      await api.delete(`/members/${numericId}`);
+
+      setMembers((prev) =>
+        prev.filter((m) => m.id !== numericId)
+      );
     } catch (err) {
-      console.error("Delete member error:", err);
       alert(err.response?.data?.message || "Failed to delete member");
     }
   };
 
-  // ── Update Profile Image ─────────────────────────
+  // ── Update Profile Image ────────────────
   const updateProfileImage = async (memberId, file) => {
     if (!file) return false;
+
+    const numericId = Number(memberId);
 
     const formData = new FormData();
     formData.append("image", file);
 
     try {
-      const res = await api.patch(`/members/${memberId}/image`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setMembers(prev =>
-        prev.map(m => (m.id === memberId ? { ...m, ...res.data } : m))
+      const res = await api.patch(
+        `/members/${numericId}/image`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
+
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === numericId ? { ...m, ...res.data } : m
+        )
+      );
+
       return true;
     } catch (err) {
-      console.error("Update profile image error:", err.response?.data || err);
       alert(err.response?.data?.message || "Failed to update profile image");
       return false;
     }
   };
 
-  // ── Replace Payment Proof ────────────────────────
+  // ── Replace Payment Proof ───────────────
   const replacePaymentProof = async (memberId, file) => {
     if (!file) return false;
+
+    const numericId = Number(memberId);
 
     const formData = new FormData();
     formData.append("paymentProof", file);
 
     try {
-      const res = await api.patch(`/members/${memberId}/payment-proof`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setMembers(prev =>
-        prev.map(m => (m.id === memberId ? { ...m, ...res.data } : m))
+      const res = await api.patch(
+        `/members/${numericId}/payment-proof`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
+
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.id === numericId ? { ...m, ...res.data } : m
+        )
+      );
+
       return true;
     } catch (err) {
-      console.error("Replace payment proof error:", err.response?.data || err);
       alert(err.response?.data?.message || "Failed to replace payment proof");
       return false;
     }
@@ -118,12 +180,15 @@ export function MembersProvider({ children }) {
       value={{
         members,
         loading,
+        currentUser,
+        login,
+        logout,
         createMember,
         updateMember,
         deleteMember,
         updateProfileImage,
         replacePaymentProof,
-        refreshMembers,
+        refreshMembers: fetchMembers,
       }}
     >
       {children}

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../utils/api";
+import { useMembers } from './MembersContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login, refreshMembers } = useMembers();
 
   const [formData, setFormData] = useState({
     phoneNumber: "",
@@ -32,6 +34,8 @@ export default function Login() {
       // ✅ Save token
       const token = response.data.access_token;
       localStorage.setItem("token", token);
+
+      const login = await refreshMembers(); // Refresh members to get user info
 
       alert("Login successful!");
       navigate("/members");
