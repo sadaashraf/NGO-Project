@@ -5,9 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
 import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
-import path from 'path/win32';
-
-
+import path from 'path';
 
 @Injectable()
 export class MembersService {
@@ -22,18 +20,19 @@ export class MembersService {
     imageFile?: Express.Multer.File,
     paymentProofFile?: Express.Multer.File,
   ) {
-    const member = await this.memberRepo.findOneBy({
+
+    const existing = await this.memberRepo.findOneBy({
       phoneNumber: createMemberDto.phoneNumber,
     });
 
-    if (member) {
+    if (existing) {
       throw new BadRequestException('Phone number already exists');
     }
 
     const newMember = this.memberRepo.create({
       ...createMemberDto,
-      image: imageFile?.path ?? undefined,
-      paymentProof: paymentProofFile?.path ?? undefined,
+      image: imageFile?.filename,
+      paymentProof: paymentProofFile?.filename,
     });
 
     return this.memberRepo.save(newMember);
@@ -44,72 +43,82 @@ export class MembersService {
     return this.memberRepo.find();
   }
 
+
   async findOne(id: number) {
+
     const member = await this.memberRepo.findOneBy({ id });
-    if (!member) {
+
+    if (!member)
       throw new BadRequestException('Member not found');
-    }
+
     return member;
   }
 
-  async update(id: number, updateMemberDto: UpdateMemberDto) {
-    const member = await this.memberRepo.findOneBy({ id });
-    if (!member) {
+
+  async update(id: number, dto: UpdateMemberDto) {
+
+    const member = await this.memberRepo.findOne({ where: { id } });
+
+    if (!member)
       throw new BadRequestException('Member not found');
-    }
-    Object.assign(member, updateMemberDto);
+
+    Object.assign(member, dto);
+
     return this.memberRepo.save(member);
   }
 
-  remove(id: number) {
-    const member = this.memberRepo.findOneBy({ id });
-    if (!member) {
+
+  async remove(id: number) {
+
+    const member = await this.memberRepo.findOneBy({ id });
+
+    if (!member)
       throw new BadRequestException('Member not found');
-    } return this.memberRepo.delete(id);
+
+    return this.memberRepo.delete(id);
   }
 
-  async updateImage(id: number, imageFile?: Express.Multer.File) {
-    const member = await this.memberRepo.findOneBy({ id });
-    if (!member) throw new BadRequestException('Member not found');
 
-    if (!imageFile) {
-      throw new BadRequestException('No image file provided');
-    }
+  async updateImage(id: number, file: Express.Multer.File) {
 
-    // delete old image if exists
+    const member = await this.memberRepo.findOne({ where: { id } });
+
+    if (!member)
+      throw new BadRequestException('Member not found');
+
     if (member.image) {
-      const oldPath = path.join(__dirname, '..', '..', 'uploads', member.image);
+
+      const oldPath = path.join(process.cwd(), 'uploads', member.image);
+
       try {
         await unlink(oldPath);
-      } catch (err) {
-        console.warn(`Old image not deleted: ${err.message}`);
-      }
+      } catch { }
     }
 
-    member.image = imageFile.filename;
+    member.image = file.filename;
+
     return this.memberRepo.save(member);
   }
 
-  async updatePaymentProof(id: number, proofFile?: Express.Multer.File) {
-    const member = await this.memberRepo.findOneBy({ id });
-    if (!member) throw new BadRequestException('Member not found');
 
-    if (!proofFile) {
-      throw new BadRequestException('No proof file provided');
-    }
+  async updatePaymentProof(id: number, file: Express.Multer.File) {
 
-    // پرانی proof delete
+    const member = await this.memberRepo.findOne({ where: { id } });
+
+    if (!member)
+      throw new BadRequestException('Member not found');
+
     if (member.paymentProof) {
-      const oldPath = path.join(__dirname, '..', '..', 'uploads', member.paymentProof);
+
+      const oldPath = path.join(process.cwd(), 'uploads', member.paymentProof);
+
       try {
         await unlink(oldPath);
-      } catch (err) {
-        console.warn(`Old proof not deleted: ${err.message}`);
-      }
+      } catch { }
     }
 
-    member.paymentProof = proofFile.filename;
+    member.paymentProof = file.filename;
+
     return this.memberRepo.save(member);
   }
 }
-
