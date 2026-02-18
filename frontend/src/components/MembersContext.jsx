@@ -37,11 +37,12 @@ export function MembersProvider({ children }) {
       setLoading(true);
       const res = await api.get("/members");
 
-      // 🔥 Force ID to always be number
-      const formatted = (res.data || []).map((m) => ({
-        ...m,
-        id: Number(m.id),
-      }));
+      const formatted = (res.data || [])
+        .map((m) => ({
+          ...m,
+          id: Number(m.id),
+        }))
+        .sort((a, b) => a.id - b.id);
 
       setMembers(formatted);
     } catch (err) {
@@ -50,6 +51,7 @@ export function MembersProvider({ children }) {
       setLoading(false);
     }
   };
+
 
   // ── On App Load ─────────────────────────
   useEffect(() => {
