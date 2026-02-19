@@ -11,6 +11,7 @@ import {
   BadRequestException,
   UseInterceptors,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
@@ -93,9 +94,18 @@ export class MembersController {
     return this.membersService.findAll();
   }
 
+  // ✅ search by name or phone
+  @Get('search')
+  search(
+    @Query('fullName') fullName: string,
+    @Query('phoneNumber') phoneNumber: string,
+  ) {
+    return this.membersService.search(fullName, phoneNumber);
+  }
+
   // ✅ GET ONE
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', ParseIntPipe) id: number) {
     return this.membersService.findOne(+id);
   }
 
@@ -178,3 +188,5 @@ export class MembersController {
     return this.membersService.remove(+id);
   }
 }
+
+
