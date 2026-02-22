@@ -100,7 +100,7 @@ export function MembersProvider({ children }) {
 
       return true;
     } catch (err) {
-      alert(err.response?.data?.message || "Failed  update member");
+      alert(err.response?.data?.message || "Failed to update member");
       return false;
     }
   };
