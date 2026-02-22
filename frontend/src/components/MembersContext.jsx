@@ -32,12 +32,15 @@ export function MembersProvider({ children }) {
   };
 
   // ── Fetch Members ────────────────────────
-  const fetchMembers = async () => {
+  // ── Fetch Members (WITH PAGINATION) ────────────────────────
+  const fetchMembers = async (page = 1, limit = 20) => {
     try {
       setLoading(true);
-      const res = await api.get("/members");
 
-      const formatted = (res.data || [])
+      const res = await api.get(`/members?page=${page}&limit=${limit}`);
+
+      // IMPORTANT CHANGE HERE 👇
+      const formatted = (res.data.items || [])
         .map((m) => ({
           ...m,
           id: Number(m.id),
@@ -45,6 +48,8 @@ export function MembersProvider({ children }) {
         .sort((a, b) => a.id - b.id);
 
       setMembers(formatted);
+
+      return res.data.meta; // so we can use totalPages later
     } catch (err) {
       console.error("Error fetching members:", err.response?.data || err);
     } finally {
