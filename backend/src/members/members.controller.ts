@@ -88,13 +88,19 @@ export class MembersController {
     );
   }
 
-  // ✅ GET ALL
+  //  GET ALL
   @Get()
-  findAll() {
-    return this.membersService.findAll();
+  async findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 20;
+
+    return this.membersService.findAllPaginated(pageNum, limitNum);
   }
 
-  // ✅ search by name or phone
+  //  search by name or phone
   @Get('search')
   search(
     @Query('fullName') fullName: string,
@@ -103,13 +109,13 @@ export class MembersController {
     return this.membersService.search(fullName, phoneNumber);
   }
 
-  // ✅ GET ONE
+  //  GET ONE
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.membersService.findOne(+id);
   }
 
-  // ✅ UPDATE NORMAL DATA
+  //  UPDATE NORMAL DATA
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -118,7 +124,7 @@ export class MembersController {
     return this.membersService.update(id, dto);
   }
 
-  // ✅ UPDATE IMAGE
+  //  UPDATE IMAGE
   @Patch(':id/image')
   @UseInterceptors(
     FileInterceptor('image', {
@@ -150,7 +156,7 @@ export class MembersController {
     );
   }
 
-  // ✅ UPDATE PAYMENT PROOF
+  //  UPDATE PAYMENT PROOF
   @Patch(':id/payment-proof')
   @UseInterceptors(
     FileInterceptor('paymentProof', {
@@ -182,7 +188,7 @@ export class MembersController {
     );
   }
 
-  // ✅ DELETE
+  //  DELETE
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.membersService.remove(+id);

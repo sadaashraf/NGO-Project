@@ -38,9 +38,23 @@ export class MembersService {
     return this.memberRepo.save(newMember);
   }
 
+  async findAllPaginated(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [items, total] = await this.memberRepo.findAndCount({
+      order: { id: 'DESC' },           // or createdAt, etc.
+      skip,
+      take: limit,
+    });
 
-  findAll() {
-    return this.memberRepo.find();
+    return {
+      items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: number) {
