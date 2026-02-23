@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from "react";
+import { createContext, useState, useContext, useEffect, useCallback, useMemo } from "react";
 import api from "../utils/api";
 
 const MembersContext = createContext();
@@ -33,13 +33,12 @@ export function MembersProvider({ children }) {
 
   // ── Fetch Members ────────────────────────
   // ── Fetch Members (WITH PAGINATION) ────────────────────────
-  const fetchMembers = async (page = 1, limit = 20) => {
+  const fetchMembers = useCallback(async (page = 1, limit = 20) => {
     try {
       setLoading(true);
 
       const res = await api.get(`/members?page=${page}&limit=${limit}`);
 
-      // IMPORTANT CHANGE HERE 👇
       const formatted = (res.data.items || [])
         .map((m) => ({
           ...m,
@@ -49,13 +48,13 @@ export function MembersProvider({ children }) {
 
       setMembers(formatted);
 
-      return res.data.meta; // so we can use totalPages later
+      return res.data.meta;
     } catch (err) {
       console.error("Error fetching members:", err.response?.data || err);
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // IMPORTANT
 
 
   // ── On App Load ─────────────────────────
@@ -181,23 +180,27 @@ export function MembersProvider({ children }) {
       return false;
     }
   };
+  const value = useMemo(() => ({
+    members,
+    loading,
+    currentUser,
+    login,
+    logout,
+    createMember,
+    updateMember,
+    deleteMember,
+    updateProfileImage,
+    replacePaymentProof,
+    refreshMembers: fetchMembers,
+  }), [
+    members,
+    loading,
+    currentUser,
+    fetchMembers
+  ]);
 
   return (
-    <MembersContext.Provider
-      value={{
-        members,
-        loading,
-        currentUser,
-        login,
-        logout,
-        createMember,
-        updateMember,
-        deleteMember,
-        updateProfileImage,
-        replacePaymentProof,
-        refreshMembers: fetchMembers,
-      }}
-    >
+    <MembersContext.Provider value={value}>
       {children}
     </MembersContext.Provider>
   );
