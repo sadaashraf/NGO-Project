@@ -3,7 +3,7 @@ import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 export class CreateMemberDto {
   @IsString()
   @IsNotEmpty()
-  fullName: string;   // ← match Entity
+  fullName: string;
 
   @IsString()
   @IsNotEmpty()
