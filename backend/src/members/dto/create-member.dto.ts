@@ -13,10 +13,6 @@ export class CreateMemberDto {
   @IsNotEmpty()
   phoneNumber: string;
 
-  @IsString()
-  @IsNotEmpty()
-  password: string;
-
   @IsNumber()
   @IsNotEmpty()
   donationAmount: number;
