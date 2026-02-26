@@ -6,6 +6,9 @@ import { Member } from './entities/member.entity';
 import { Repository } from 'typeorm';
 import { unlink } from 'fs/promises';
 import path from 'path';
+import { paginate } from 'nestjs-typeorm-paginate/dist/paginate';
+import { Pagination } from 'nestjs-typeorm-paginate/dist/pagination';
+import { IPaginationOptions } from 'nestjs-typeorm-paginate/dist/interfaces';
 
 @Injectable()
 export class MembersService {
@@ -38,24 +41,16 @@ export class MembersService {
     return this.memberRepo.save(newMember);
   }
 
-  async findAllPaginated(page: number, limit: number) {
-    const skip = (page - 1) * limit;
-    const [items, total] = await this.memberRepo.findAndCount({
-      order: { id: 'DESC' },           // or createdAt, etc.
-      skip,
-      take: limit,
-    });
+  async paginate(
+    options: IPaginationOptions,
+  ): Promise<Pagination<Member>> {
 
-    return {
-      items,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    const queryBuilder = this.memberRepo.createQueryBuilder('m');
+    queryBuilder.orderBy('m.id', 'DESC');
+    return paginate<Member>(queryBuilder, options);
+
   }
+
 
   async findOne(id: number) {
     const member = await this.memberRepo.findOneBy({ id });

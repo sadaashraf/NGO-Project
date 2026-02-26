@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   ParseIntPipe,
   Query,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { CreateMemberDto } from './dto/create-member.dto';
@@ -24,6 +25,8 @@ import {
   FileInterceptor,
   FilesInterceptor,
 } from '@nestjs/platform-express';
+import { Pagination } from 'nestjs-typeorm-paginate/dist/pagination';
+import { Member } from './entities/member.entity';
 
 @Controller('members')
 export class MembersController {
@@ -91,14 +94,25 @@ export class MembersController {
 
   //  GET ALL
   @Get()
-  async findAll(
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '20',
-  ) {
-    const pageNum = parseInt(page, 10) || 1;
-    const limitNum = parseInt(limit, 10) || 20;
 
-    return this.membersService.findAllPaginated(pageNum, limitNum);
+  async index(
+
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number,
+
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
+    limit: number,
+
+  ): Promise<Pagination<Member>> {
+
+    limit = limit > 100 ? 100 : limit;
+    return this.membersService.paginate({
+      page,
+      limit,
+      route: 'http://localhost:3000/members',
+
+    });
+
   }
 
   //  search by name or phone
