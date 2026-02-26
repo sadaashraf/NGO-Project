@@ -120,7 +120,8 @@ const MembersList = () => {
     setUploadingProofId(memberId);
     try {
       const success = await replacePaymentProof(memberId, file);
-      if (success) refreshMembers(1); // refresh page 1
+      if (success) refreshMembers(currentPage, limit);
+
     } catch (err) {
       alert('Failed to update payment proof');
     } finally {
@@ -136,7 +137,8 @@ const MembersList = () => {
     setUploadingImageId(memberId);
     try {
       const success = await updateProfileImage(memberId, file);
-      if (success) refreshMembers(1);
+      if (success) refreshMembers(currentPage, limit);
+
     } catch (err) {
       alert('Failed to update profile image');
     } finally {
@@ -180,7 +182,7 @@ const MembersList = () => {
       alert('Member updated!');
       setEditingMember(null);
       setEditFormData({});
-      refreshMembers(1);
+      refreshMembers(currentPage, limit);
     }
   };
 
@@ -263,7 +265,7 @@ const MembersList = () => {
                   return (
                     <tr key={memberId} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {index + 1}
+                        {(currentPage - 1) * limit + index + 1}
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap">

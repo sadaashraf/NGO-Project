@@ -39,22 +39,26 @@ export function MembersProvider({ children }) {
 
       const res = await api.get(`/members?page=${page}&limit=${limit}`);
 
-      const formatted = (res.data.items || [])
-        .map((m) => ({
-          ...m,
-          id: Number(m.id),
-        }))
-        .sort((a, b) => a.id - b.id);
+      const formatted = (res.data.items || []).map((m) => ({
+        ...m,
+        id: Number(m.id),
+      }));
 
       setMembers(formatted);
 
       return res.data.meta;
+
     } catch (err) {
+
       console.error("Error fetching members:", err.response?.data || err);
+
     } finally {
+
       setLoading(false);
+
     }
-  }, []); // IMPORTANT
+  }, []);
+
 
 
   // ── On App Load ─────────────────────────
