@@ -268,12 +268,12 @@ const MembersList = () => {
 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative group inline-block">
-                          {member.image ? (
+                          {member.image && member.image.length > 0 ? (
                             <img
-                              src={`http://localhost:3000/uploads/${member.image}`}
+                              src={`http://localhost:3000/uploads/${member.image[0]}`}
                               alt={member.fullName}
-                              className="h-12 w-12 rounded-full object-cover border border-gray-300"
-                              onError={(e) => (e.target.src = 'https://via.placeholder.com/48?text=?')}
+                              className="h-12 w-12 rounded-full object-cover border"
+                              onError={(e) => (e.target.style.display = "none")}
                             />
                           ) : (
                             <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
