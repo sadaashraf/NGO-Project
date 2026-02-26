@@ -18,8 +18,8 @@ export class Member {
   @Column()
   donationAmount: number;
 
-  @Column({ nullable: true })
-  image?: string;
+  @Column('text', { array: true, nullable: true })
+  image: string[];
 
   @Column({ nullable: true })
   paymentProof?: string;

@@ -22,6 +22,7 @@ import { diskStorage } from 'multer';
 import {
   FileFieldsInterceptor,
   FileInterceptor,
+  FilesInterceptor,
 } from '@nestjs/platform-express';
 
 @Controller('members')
@@ -127,33 +128,26 @@ export class MembersController {
   //  UPDATE IMAGE
   @Patch(':id/image')
   @UseInterceptors(
-    FileInterceptor('image', {
+    FilesInterceptor('image', 5, {   // 5 max files (aap change kar sakte hain)
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
           const name =
-            Date.now() +
-            '-' +
-            Math.round(Math.random() * 1e9);
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
 
           cb(null, `${name}${extname(file.originalname)}`);
         },
       }),
     }),
   )
-  updateImage(
+  updateImages(
     @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    if (!file)
-      throw new BadRequestException(
-        'Image required',
-      );
+    if (!files || files.length === 0)
+      throw new BadRequestException('At least one image required');
 
-    return this.membersService.updateImage(
-      +id,
-      file,
-    );
+    return this.membersService.updateImages(+id, files);
   }
 
   //  UPDATE PAYMENT PROOF

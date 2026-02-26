@@ -31,7 +31,7 @@ export class MembersService {
 
     const newMember = this.memberRepo.create({
       ...createMemberDto,
-      image: imageFile?.filename,
+      image: imageFile ? [imageFile.filename] : [],
       paymentProof: paymentProofFile?.filename,
     });
 
@@ -79,17 +79,25 @@ export class MembersService {
     return this.memberRepo.delete(id);
   }
 
-  async updateImage(id: number, file: Express.Multer.File) {
+  async updateImages(id: number, files: Express.Multer.File[]) {
     const member = await this.memberRepo.findOne({ where: { id } });
+
     if (!member)
       throw new BadRequestException('Member not found');
-    if (member.image) {
-      const oldPath = path.join(process.cwd(), 'uploads', member.image);
-      try {
-        await unlink(oldPath);
-      } catch { }
+
+    // Agar pehle images hain to unko delete karein
+    if (member.image && member.image.length > 0) {
+      for (const image of member.image) {
+        const oldPath = path.join(process.cwd(), 'uploads', image);
+        try {
+          await unlink(oldPath);
+        } catch { }
+      }
     }
-    member.image = file.filename;
+
+    // Naye filenames save karein
+    member.image = files.map(file => file.filename);
+
     return this.memberRepo.save(member);
   }
 
