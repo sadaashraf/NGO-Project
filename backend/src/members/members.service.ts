@@ -24,13 +24,13 @@ export class MembersService {
     paymentProofFile?: Express.Multer.File,
   ) {
 
-    const existing = await this.memberRepo.findOneBy({
-      phoneNumber: createMemberDto.phoneNumber,
-    });
+    // const existing = await this.memberRepo.findOneBy({
+    //   phoneNumber: createMemberDto.phoneNumber,
+    // });
 
-    if (existing) {
-      throw new BadRequestException('Phone no already exists');
-    }
+    // if (existing) {
+    //   throw new BadRequestException('Phone no already exists');
+    // }
 
     const newMember = this.memberRepo.create({
       ...createMemberDto,

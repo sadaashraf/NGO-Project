@@ -2,19 +2,19 @@ import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class CreateMemberDto {
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   fullName: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   fatherName: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   phoneNumber: string;
 
   @IsNumber()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   donationAmount: number;
 
   // @IsString()
