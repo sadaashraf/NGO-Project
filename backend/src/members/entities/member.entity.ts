@@ -7,16 +7,16 @@ export class Member {
   id: number;
 
   @Column()
-  fullName?: string;
+  fullName: string;
 
   @Column()
-  fatherName?: string;
+  fatherName: string;
 
   @Column()
-  phoneNumber?: string;
+  phoneNumber: string;
 
   @Column()
-  donationAmount?: number;
+  donationAmount: number;
 
   @Column('text', { array: true, nullable: true })
   image: string[];

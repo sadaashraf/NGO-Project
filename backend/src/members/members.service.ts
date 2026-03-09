@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateMemberDto } from './dto/create-member.dto';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,6 +9,7 @@ import path from 'path';
 import { paginate } from 'nestjs-typeorm-paginate/dist/paginate';
 import { Pagination } from 'nestjs-typeorm-paginate/dist/pagination';
 import { IPaginationOptions } from 'nestjs-typeorm-paginate/dist/interfaces';
+import { responseMessage } from 'src/common/respone.mommon';
 
 @Injectable()
 export class MembersService {
@@ -24,13 +25,13 @@ export class MembersService {
     paymentProofFile?: Express.Multer.File,
   ) {
 
-    // const existing = await this.memberRepo.findOneBy({
-    //   phoneNumber: createMemberDto.phoneNumber,
-    // });
+    const existing = await this.memberRepo.findOneBy({
+      phoneNumber: createMemberDto.phoneNumber,
+    });
 
-    // if (existing) {
-    //   throw new BadRequestException('Phone no already exists');
-    // }
+    if (existing) {
+      throw new BadRequestException('Phone no already exists');
+    }
 
     const newMember = this.memberRepo.create({
       ...createMemberDto,
@@ -38,7 +39,12 @@ export class MembersService {
       paymentProof: paymentProofFile?.filename,
     });
 
-    return this.memberRepo.save(newMember);
+    this.memberRepo.save(newMember);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: responseMessage.CREATED_DATA,
+      result: newMember,
+    };
   }
 
   async paginate(
