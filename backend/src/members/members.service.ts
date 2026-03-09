@@ -30,7 +30,7 @@ export class MembersService {
     });
 
     if (existing) {
-      throw new BadRequestException('Phone no already exists');
+      throw new BadRequestException('Phone number already exists');
     }
 
     const newMember = this.memberRepo.create({
