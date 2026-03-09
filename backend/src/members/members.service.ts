@@ -77,7 +77,12 @@ export class MembersService {
     const member = await this.memberRepo.findOneBy({ id });
     if (!member)
       throw new BadRequestException('Member not found');
-    return this.memberRepo.delete(id);
+    this.memberRepo.delete(id);
+    return {
+      statusCode: HttpStatus.OK,
+      message: responseMessage.DELETED_DATA,
+      result: member,
+    };
   }
 
   async updateImages(id: number, files: Express.Multer.File[]) {
